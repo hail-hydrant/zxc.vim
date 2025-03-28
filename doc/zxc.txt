@@ -1,0 +1,646 @@
+*zxc.txt*        zxc plugin for Vim
+
+Author: darkseid
+Last Change:
+
+===============================================================================
+CONTENTS                                                     *zxc-contents*
+
+1. Overview ........................................... |zxc-overview|
+2. Requirements ....................................... |zxc-requirements|
+3. Installation ....................................... |zxc-installation|
+4. Configuration ...................................... |zxc-configuration|
+5. Windows ............................................ |zxc-windows|
+    5.1. Interceptor .................................. |zxc-interceptor|
+        5.1.1. Commands ............................... |zxc-inteceptor-commands|
+    5.2. History ...................................... |zxc-history|
+    5.3. Repeater ..................................... |zxc-repeater|
+        5.3.1. Commands ............................... |zxc-repeater-commands|
+    5.4. Addons ....................................... |zxc-addons|
+6. FileTypes .......................................... |zxc-filetypes|
+    6.1. Request ...................................... |zxc-ft-req|
+        6.1.1. Commands ............................... |zxc-req-commands|
+        6.1.2. Variables .............................. |zxc-req-variables|
+    6.2. Response ..................................... |zxc-ft-res|
+        6.2.2. Variables .............................. |zxc-res-variables|
+    6.3. Websocket Request ............................ |zxc-ft-wreq|
+        6.3.1. Commands ............................... |zxc-wreq-commands|
+    6.4. Websocket Response ........................... |zxc-ft-wres|
+    6.5. Http History ................................. |zxc-ft-his|
+        6.5.1. Commands ............................... |zxc-his-commands|
+    6.6. Websocket History ............................ |zxc-ft-whis|
+        6.6.1. Commands ............................... |zxc-whis-commands|
+    6.7. Websocket Session History .................... |zxc-ft-wsess|
+        6.7.1. Commands ............................... |zxc-wsess-commands|
+7. Search ............................................. |zxc-search|
+8. Encoding ........................................... |zxc-encoding|
+9. Decoding ........................................... |zxc-decoding|
+10. Highligh Groups .................................... |zxc-highlight-groups|
+    10.1. History ...................................... |zxc-hl-his|
+        10.1.1. Uri Conceal ............................ |zxc-hl-his-uri-conceal|
+    10.2. Request ...................................... |zxc-hl-req|
+    10.3. Response ..................................... |zxc-hl-res|
+    10.4. Interceptor Status Line ...................... |zxc-hl-inter-statusline|
+11. Debugging ......................................... |zxc-debug|
+12. License ........................................... |zxc-license|
+
+===============================================================================
+1. Overview                                                       *zxc-overview*
+
+The zxc.vim plugin adds UI functionality to vim to interact with the zxc
+binary. This plugin implements unix socket connection to binary to perform
+various tasks.
+
+The repository for this plugin is available at
+
+    https://github.com/hail-hydrant/zxc.vim
+
+===============================================================================
+2. Requirements                                               *zxc-requirements*
+
+The plugin requires the following vim features
+
+*channel*
+*terminal*
+*timers*
+
+===============================================================================
+3. Installation                                               *zxc-installation*
+
+You can install this plugin directly from github using the following steps
+
+$ mkdir -p ~/.vim/pack/git-plugins/start/
+$ git clone --depth 1 https://github.com/hail-hydrant/zxc.vim
+        ~/.vim/pack/git-plugins/start/zxc.vim
+
+===============================================================================
+4. Configuration                                             *zxc-configuration*
+
+The windows and filetypes can be configured separately. The following example
+shows how to configure the windows.
+
+    https://github.com/hail-hydrant/zxc/blob/main/example/zxc.vim
+
+The filetypes can be configured in their own |ftplugins|.
+
+===============================================================================
+5. Windows                                                         *zxc-windows*
+
+zxc (tmux) session consists of the following windows.
+
+Interceptor         |zxc-interceptor|
+History             |zxc-history|
+Repeater            |zxc-repeater|
+Addons              |zxc-addons|
+
+Each window has its own config and commands which are described below.
+
+-------------------------------------------------------------------------------
+5.1. Interceptor                                               *zxc-interceptor*
+
+Displays the intercepted requests and responses.
+
+-------------------------------------------------------------------------------
+5.1.1. Commands                                       *zxc-interceptor-commands*
+
+    *DropMsg*               Drop current request or response.
+
+    *InterToggle*           Toggle interceptor on/off.
+
+    *InterForward*          Forward current request or response.
+
+    *InterForwardAll*       Forward all request or response in queue.
+
+    *InterForwardWithRes*   Forward request + Intercept response to the request.
+
+    *Showq*                 Show buffer list with their respective host and
+                          scheme.
+
+-------------------------------------------------------------------------------
+5.2. History                                                       *zxc-history*
+
+Displays the history of requests and responses, both http and websocket. The
+history window shows the following history file types
+
+    |ft-his|     http
+    |ft-whis|    All Websocket connections
+    |ft-wsess|   Single Websocket Session
+
+Each file type have their own set of commands. The commands are described
+below in their respective |zxc-*-ft|
+
+-------------------------------------------------------------------------------
+5.3. Repeater                                                     *zxc-repeater*
+
+Repeats a request and displays response in a vertical split.
+
+-------------------------------------------------------------------------------
+5.3.1. Commands                                          *zxc-repeater-commands*
+
+    *RepeaterSend*      Send request.
+                      Available in |zxc-ft-req| and scratch.wreq .
+
+    *WsEstablish*       Establish Websocket Connection (available in
+                      |zxc-ft-req| filetype in ws repeater tab).
+
+-------------------------------------------------------------------------------
+5.4. Addons                                                         *zxc-addons*
+
+Request is displayed in top and vim terminal with addon command is displayed in
+bottom.
+
+Note:
+The user should run the command manually in terminal.
+
+===============================================================================
+6. FileTypes                                                     *zxc-filetypes*
+
+zxc includes the following filetypes:
+    his     *zxc-ft-his*
+    req     *zxc-ft-req*
+    res     *zxc-ft-res*
+    whis    *zxc-ft-whis*
+    wsess   *zxc-ft-wsess*
+    wreq    *zxc-ft-wreq*
+    wres    *zxc-ft-wres*
+
+Each filetype has its own set of commands. The mappings to these commands can
+be customised in their respective |ftplugins|.
+
+-------------------------------------------------------------------------------
+6.1. Request                                                        *zxc-ft-req*
+
+Filetype for http request.
+
+-------------------------------------------------------------------------------
+6.1.1. Commands                                               *zxc-req-commands*
+
+    *EditBufVar*            Edit buffer variables in a popup window.
+                          Save and quit popup to reflect changes.
+
+    *RequestToFuzz*         Send to ffuf addon.
+
+    *RequestToRepeater*     Send to Repeater.
+
+    *RequestToSql*          Send to Sqlmap addon.
+
+-------------------------------------------------------------------------------
+6.1.2. Variables                                             *zxc-req-variables*
+
+    Name        | Type          | Description
+    ----------  | ---------     | ----------
+    b:host      | string        | Host to send request to (includes port).
+                |               |
+    b:scheme    | string        | http/https
+                |               |
+    b:sni       | string        | SNI to use in TLS handshake.
+                |               | Only when b:http is false.
+                |               |
+    b:update    | bool          | Whether request should be updated according
+                |               | to RFC.
+
+-------------------------------------------------------------------------------
+6.2. Response                                                       *zxc-ft-res*
+
+Filetype for http response. No special commands only encode and decode commands
+available.
+
+-------------------------------------------------------------------------------
+6.2.2. Variables                                             *zxc-res-variables*
+
+    Name        | Type          | Description
+    ----------  | ---------     | ----------
+    b:update    | bool          | Whether request should be updated according
+
+-------------------------------------------------------------------------------
+6.3. Websocket Request                                             *zxc-ft-wreq*
+
+Filetype for websocket request.
+
+-------------------------------------------------------------------------------
+6.3.1. Commands                                              *zxc-wreq-commands*
+
+    *WsSendToRepeater*      Send ws request to Repeater
+
+-------------------------------------------------------------------------------
+6.4. Websocket Response                                            *zxc-ft-wres*
+
+Filetype for websocket response.
+
+-------------------------------------------------------------------------------
+6.5. Http History                                                   *zxc-ft-his*
+
+Filetype for http request and response history.
+
+-------------------------------------------------------------------------------
+6.5.1. Commands                                               *zxc-his-commands*
+
+    *HistoryView*           View current history.
+                          Default binding <CR>.
+
+    *HistoryIndent*         Indent history by running *column* shell command on
+                          the history buffer.
+                          NOTE:
+                            Highly resource intensive and blocking.
+                            Use sparingly.
+
+    *HistoryToRepeater*     Send to Repeater.
+
+    *HistoryToFuzz*         Send to Ffuf addon.
+
+    *HistoryToSql*          Send to Sqlmap addon.
+
+    *ApplyFilters*          Apply filters.
+
+    *ShowFilters*           Show filters in poup.
+                          Use q to close popup.
+
+
+    *ClearFilters*          Clear all filters.
+
+    *AddToHostScope*        Add host in current line to view scope.
+
+    *ClearHostScope*        Clear host view scope list.
+
+    *EditHostScope*         Edit host scope in a popup.
+                          Supports Vim Regex. Prefix regex with "/r "
+
+    *ShowHostScope*         Show host scope list in a popup.
+                          Use q to close popup.
+
+    *AddScode*              Add Command argument to status code scope.
+                          Use 'x' in place of wildcard.
+                          For example,
+                            1xx : shows status code in range 100 - 199
+                            21x : shows status code in range 210 - 219
+
+    *ClearScode*            Clear status code scope.
+
+    *EditScode*             Edit status code scope in popup.
+
+    *ShowScode*             Show status code scope in popup.
+                          Use q to close popup.
+
+    *AddToUriScope*         Add uri in current line to view scope.
+
+    *ClearUriScope*         Clear uri view scope list.
+
+    *EditUriScope*          Edit uri scope in a popup.
+                          Supports Vim Regex. Prefix regex with "/r "
+
+    *ShowUriScope*          Show uri scope list in a popup.
+
+    *EditConfig*            Edit config in a popup. If the config is modified
+                          then reloaded automatically.
+
+    *ReloadConfig*          Reload config.
+
+    *ConcealUri*            Conceal uri column.
+
+-------------------------------------------------------------------------------
+6.6. Websocket History                                             *zxc-ft-whis*
+
+Filetype for websocket history, which shows the history of a all websocket
+connections.
+
+-------------------------------------------------------------------------------
+6.6.1. Commands                                              *zxc-whis-commands*
+
+    *ViewWsHistory*         View highlighted session in vertical split.
+                          Default binding <CR>.
+
+-------------------------------------------------------------------------------
+6.7. Websocket Session History                                    *zxc-ft-wsess*
+
+Filetype for websocket session history, which shows the history of a single
+weboscket session.
+
+-------------------------------------------------------------------------------
+6.7.1. Commands                                             *zxc-wsess-commands*
+
+    *ViewWsSessionHistory*  View highlighted *zxc-ft-wreq* or *zxc-ft-wres* in
+                          vertical split.
+                          Default binding <CR>.
+
+===============================================================================
+7. Search                                                       *zxc-search*
+
+The following commands only search `./history/*/*.$ext` .
+
+    *Greq*      Search requests (|zxc-ft-req|) and fill the quickfix list.
+
+    *Gres*      Search respones (|zxc-ft-res|) and fill the quickfix list.
+
+    *Greb*      Search both requests and response and fill the quickfix list.
+
+    *LGreq*     Search requests (|zxc-ft-req|) and fill the location list.
+
+    *LGres*     Search respones (|zxc-ft-res|) and fill the location list.
+
+    *LGreb*     Search both requests and response and fill the location list.
+
+===============================================================================
+8. Encoding                                                       *zxc-encoding*
+
+The following encodings are available in VISUAL mode in windows interceptor and
+repeater.
+
+    Command     | Codec
+    ----------  | ---------
+    *EBase64*     | base64
+    *EUrl*        | url
+    *EUrlAll*     | url-encode all characters
+
+NOTE: x register is used to store selected text.
+
+===============================================================================
+9. Decoding                                                       *zxc-decoding*
+
+The following decodings are available in VISUAL mode in windows interceptor and
+repeater.
+
+    Command     | Codec
+    ----------  | ---------
+    *DBase64*     | base64
+    *DUrl*        | url
+    *DUrlAll*     | url-decode all characters
+
+NOTE: x register is used to store selected text.
+
+===============================================================================
+10. Highlight Groups                                       *zxc-highlight-groups*
+
+The following highlight groups are used by the zxc plugin. Each filetype has a
+separate set of highlight groups. You can define these highlight groups in your
+.vimrc file before sourcing this plugin to override them.
+
+-------------------------------------------------------------------------------
+10.1. History                                                        *zxc-hl-his*
+
+Extension   : `his`
+Filetype    : |zxc-ft-his|
+
+*zxc-hl-his-method*
+
+        Highlight group for http method.
+
+        Group Name  : `ZXCHisHttpMethod`
+
+        Default     : `hi link ZXCHisHttpMethod Type`
+
+*zxc-hl-his-protocolhttps*
+
+        Highlight group for https protocol.
+
+        Group Name  : `ZXCHisProtocolHttps`
+
+        Default     : `hi ZXCHisProtocolHttps ctermfg=Blue guifg=Blue`
+
+*zxc-hl-his-protocolhttp*
+
+        Highlight group for http protocol.
+
+        Group Name  : `ZXCHisProtocolHttp`
+
+        Default     : `hi ZXCHisProtocolHttp ctermfg=Red  guifg=Red`
+
+*zxc-hl-his-scode-switch*
+
+        Highlight group for http status code switch. [1xx]
+
+        Group Name  : `ZXCHisScodeSwitch`
+
+        Default     : `hi ZXCHisScodeSwitch ctermfg=Blue guifg=Blue`
+
+*zxc-hl-his-scode-success*
+
+        Highlight group for http status code success. [2xx]
+
+        Group Name  : `ZXCHisScodeSuccess`
+
+        Default     : `hi ZXCHisScodeSuccess ctermfg=Green guifg=Green`
+
+*zxc-hl-his-scode-redirect*
+
+        Highlight group for http status code redirect. [3xx]
+
+        Group Name  : `ZXCHisScodeRedirect`
+
+        Default     : `hi ZXCHisScodeRedirect ctermfg=Yellow guifg=Yellow`
+
+*zxc-hl-his-scode-clienterror*
+
+        Highlight group for http status code client error. [4xx]
+
+        Group Name  : `ZXCHisScodeClientError`
+
+        Default     : `hi ZXCHisScodeClientError ctermfg=Red guifg=Red`
+
+*zxc-hl-his-scode-servererror*
+
+        Highlight group for http status code server error. [5xx]
+
+        Group Name  : `ZXCHisScodeServerError`
+
+        Default     : `hi ZXCHisScodeServerError ctermfg=LightGrey guifg=LightGrey`
+
+*zxc-hl-his-httpcontentlength*
+
+        Highlight group for http content length.
+
+        Group Name  : `ZXCHisHttpContentLength`
+
+        Default     : `hi link ZXCHisHttpContentLength Number`
+
+*zxc-hl-his-host*
+
+        Highlight group for http host.
+
+        Group Name  : `ZXCHisHost`
+
+        Default     : `hi link ZXCHisHost Statement`
+
+*zxc-hl-his-uri*
+
+        Highlight group for http uri.
+
+        Group Name  : `ZXCHisUri`
+
+        Default     : `hi link ZXCHisUri String`
+
+-------------------------------------------------------------------------------
+10.1.1. Uri Conceal                                         *zxc-his-uri-conceal*
+
+The ```g:conceal``` variable can be set in |zxc-ft-his| ftplugin which
+specifies the number of characters that should be concealed in the URI column.
+Set the |conceallevel| in your configuration to enable this feature.
+
+-------------------------------------------------------------------------------
+10.2. Request                                                        *zxc-hl-req*
+
+Extension   : `req`
+FileType    : |zxc-ft-req|
+
+*zxc-hl-req-method*
+
+        Highlight group for request method.
+
+        Group Name  : `ZXCReqMethod`
+
+        Default     : `hi link ZXCReqMethod Type`
+
+*zxc-hl-req-uri*
+
+        Highlight group for request uri.
+
+        Group Name  : `ZXCReqUri`
+
+        Default     : `hi link ZXCReqURI String`
+
+*zxc-hl-req-httpversion*
+
+        Highlight group for request http version.
+
+        Group Name  : `ZXCReqHttpVersion`
+
+        Default     : `hi link ZXCReqHttpVersion Statement`
+
+*zxc-hl-req-headerkey*
+
+        Highlight group for request header key.
+
+        Group Name  : `ZXCReqHeaderKey`
+
+        Default     : `hi link ZXCReqHeaderKey Identifier`
+
+*zxc-hl-req-headervalue*
+
+        Highlight group for request header value.
+
+        Group Name  : `ZXCReqHeaderValue`
+
+        Default     : `hi link ZXCReqHeaderValue String`
+
+-------------------------------------------------------------------------------
+10.3. Response                                                       *zxc-hl-res*
+
+Extension   : `res`
+FileType    : |zxc-ft-res|
+
+*zxc-hl-res-httpversion*
+
+        Highlight group for response http version.
+
+        Group Name  : `ZXCResHttpVersion`
+
+        Default     : `hi link ZXCResHttpVersion Statement`
+
+*zxc-hl-res-scode-switch*
+
+        Highlight group for response status code switch. [1xx]
+
+        Group Name  : `ZXCResScodeSwitch`
+
+        Default     : `hi ZXCResScodeSwitch ctermfg=Blue guifg=Blue`
+
+*zxc-hl-res-scode-success*
+
+        Highlight group for response status code success. [2xx]
+
+        Group Name  : `ZXCResScodeSuccess`
+
+        Default     : `hi ZXCResScodeSuccess ctermfg=Green guifg=Green`
+
+*zxc-hl-res-scode-redirect*
+
+        Highlight group for response status code redirect. [3xx]
+
+        Group Name  : `ZXCResScodeRedirect`
+
+        Default     : `hi ZXCResScodeRedirect ctermfg=Yellow guifg=Yellow`
+
+*zxc-hl-res-scode-clienterror*
+
+        Highlight group for response status code client error. [4xx]
+
+        Group Name  : `ZXCResScodeClientError`
+
+        Default     : `hi ZXCResScodeClientError ctermfg=Red guifg=Red`
+
+*zxc-hl-res-scode-servererror*
+
+        Highlight group for response status code server error. [5xx]
+
+        Group Name  : `ZXCResScodeServerError`
+
+        Default     : `hi ZXCResScodeServerError ctermfg=LightGrey guifg=LightGrey`
+
+*zxc-hl-res-headerkey*
+
+        Highlight group for response header key.
+
+        Group Name  : `ZXCResHeaderKey`
+
+        Default     : `hi link ZXCResHeaderKey Identifier`
+
+*zxc-hl-res-headervalue*
+
+        Highlight group for response header value.
+
+        Group Name  : `ZXCResHeaderValue`
+
+        Default     : `hi link ZXCResHeaderValue String`
+
+-------------------------------------------------------------------------------
+10.4. Interceptor Stauts Line                           *zxc-hl-inter-statusline*
+
+*zxc-hl-i-sline-off*
+
+        Highlight group for interceptor status line off.
+
+        Group Name  : `ZXCIStatusLineOff`
+
+        Default     : `hi ZXCIStatusLineOff guifg=Black ctermbg=black`
+
+*zxc-hl-i-sline-on*
+
+        Highlight group for interceptor status line on.
+
+        Group Name  : `ZXCIStatusLineOn`
+
+        Default     : `hi ZXCIStatusLineOn guifg=Red guibg=Black ctermbg=red ctermfg=black`
+
+===============================================================================
+11. Debugging                                                        *zxc-debug*
+
+Debug can be turned on by starting the zxc binary with -d flag.
+
+Available commands:
+    *PrintDebug*   Prints debug info
+
+    *WriteDebug*   Writes debug info to a file named $*zxc-window_debug.log
+                   in $session/log directory
+
+===============================================================================
+12. License                                                        *zxc-license*
+
+MIT License (MIT)
+Copyright (c) 2024-2025 darkseid
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
